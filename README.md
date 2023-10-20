@@ -2,6 +2,8 @@
 This repository contains the extension work for AHCKA
 
 ## Pre-requisites
+unzip all zip file in data/
+
 CPU based AHCKA (python 3.9)
 
 numpy, scipy, scikit-learn
