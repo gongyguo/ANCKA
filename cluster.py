@@ -106,8 +106,7 @@ class clustering_metrics():
 
         return acc, nmi, f1, pre, adjscore, rc
 
-def cluster(adj, X, num_cluster, deg_dict, alpha=0.2, beta = 0.35, t=5, tmax=200, ri=False, weighted_p=0):
-    n = config.hg_adj.shape[1]
+def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200, ri=False, weighted_p=0):
 
     start_time = time.time()
 
@@ -129,15 +128,18 @@ def cluster(adj, X, num_cluster, deg_dict, alpha=0.2, beta = 0.35, t=5, tmax=200
     knn = knn + knn.T #A_k
     Q = normalize(knn, norm='l1')
 
-    # P_V, P_E
-    P = [normalize(adj.T, norm='l1', axis=1),  normalize(adj, norm='l1', axis=1)]
-    
     num_topk_deg = num_cluster
     topk_deg_nodes = heapq.nlargest(int(num_topk_deg), deg_dict, key=deg_dict.get)
-    PC = P[0]@P[1][:,topk_deg_nodes]
+    if config.graph_type=="Hypergraph":
+        PC = P[0]@P[1][:,topk_deg_nodes]
+    else:
+        PC = P[0][:,topk_deg_nodes]
     M = PC
     for i in range(config.init_iter):
-        M = (1-alpha)*P[0]@(P[1].dot(M))+PC
+        if config.graph_type=="Hypergraph":
+            M = (1-alpha)*P[0]@(P[1].dot(M))+PC
+        else:
+            M = (1-alpha)*P[0].dot(M)+PC
     class_evdsum = M.sum(axis=0).flatten().tolist()[0]
     newcandidates = np.argpartition(class_evdsum, -num_cluster)[-num_cluster:]
     M = M[:,newcandidates]
@@ -166,8 +168,8 @@ def cluster(adj, X, num_cluster, deg_dict, alpha=0.2, beta = 0.35, t=5, tmax=200
 
     err = 1
 
-    if beta>0.0:
-        unconnected = np.asarray(config.hg_adj.sum(0)).flatten()==0
+    if beta>0.0 and config.graph_type=="Hypergraph":
+        unconnected = np.asarray(config.adj.sum(0)).flatten()==0
         Q[unconnected, :] *= (1./beta)
     if config.approx_knn and config.beta<1:
         mask = np.ones(P[0].shape[0])
@@ -177,7 +179,10 @@ def cluster(adj, X, num_cluster, deg_dict, alpha=0.2, beta = 0.35, t=5, tmax=200
     conductance_stats = []
 
     for i in range(tmax):
-        z = (1-beta)*P[0]@(P[1].dot(q))+ (beta)*Q.dot(q)
+        if config.graph_type=="Hypergraph":
+            z = (1-beta)*P[0]@(P[1].dot(q))+ (beta)*Q.dot(q)
+        else:
+            z = (1-beta)*P[0].dot(q)+ (beta)*Q.dot(q)
         q_prev = q
         q, _ = qr(z, mode='economic')
         err = LA.norm(q-q_prev)/LA.norm(q)
@@ -189,12 +194,11 @@ def cluster(adj, X, num_cluster, deg_dict, alpha=0.2, beta = 0.35, t=5, tmax=200
             z_0 = config.alpha * y
             z = z_0
             for j in range(config.num_hop):
-                z = (1-config.alpha)*((1-beta)*P[0]@(P[1].dot(z))+ (beta)*Q.dot(z)) + z_0
-            # ctp=y.T@(P[0]@(P[1].dot(y)))
-            # ctq=y.T@(Q@y)
+                if config.graph_type=="Hypergraph":
+                    z = (1-config.alpha)*((1-beta)*P[0]@(P[1].dot(z))+ (beta)*Q.dot(z)) + z_0
+                else:
+                    z = (1-config.alpha)*((1-beta)*P[0].dot(z)+ (beta)*Q.dot(z)) + z_0
             ct=y.T@z
-            # cond_p = 1.0-np.trace(ctp)/num_cluster
-            # cond_q = 1.0-np.trace(ctq)/num_cluster
             conductance_cur = 1.0-np.trace(ct)/num_cluster
 
             if config.verbose:
@@ -226,217 +230,3 @@ def cluster(adj, X, num_cluster, deg_dict, alpha=0.2, beta = 0.35, t=5, tmax=200
     print(f"{acc} {f1} {nmi} {adj_s} {end_time-start_time} {peak_memory}")
     return [acc, nmi, f1, adj_s, end_time-start_time, peak_memory]
 
-def cluster_graph(adj, X, num_cluster, deg_dict, alpha=0.2, beta = 0.35, t=5, tmax=200, ri=False, weighted_p=0): 
-    n = config.adj.shape[1]
-
-    start_time = time.time()
-
-    knn = kneighbors_graph(X, config.knn_k-1, metric="cosine", mode="distance", n_jobs=16)
-    knn.data = 1.0-knn.data
-    knn = knn + knn.T #A_k
-    Q = normalize(knn, norm='l1')
-
-    # P_V, P_E
-    P = normalize(adj, norm='l1', axis=1)
-    
-    num_topk_deg = num_cluster
-    topk_deg_nodes = heapq.nlargest(int(num_topk_deg), deg_dict, key=deg_dict.get)
-    PC = P[:,topk_deg_nodes]
-    M = PC
-    for i in range(config.init_iter):
-        M = (1-alpha)*P.dot(M)+PC
-    class_evdsum = M.sum(axis=0).flatten().tolist()[0]
-    newcandidates = np.argpartition(class_evdsum, -num_cluster)[-num_cluster:]
-    M = M[:,newcandidates]
-    labels = np.asarray(np.argmax(M, axis=1)).flatten()
-    
-    if config.random_init is True:
-        lls = np.unique(labels)
-        for i in range(n):
-            ll = random.choice(lls)
-            labels[i] = ll
-    
-    M = csc_matrix((np.ones(len(labels)), (np.arange(0, M.shape[0]), labels)),shape=(M.shape))
-    M = M.todense()
-
-    Mss = np.sqrt(M.sum(axis=0))
-    Mss[Mss==0]=1
-    q = M*1.0/Mss
-
-    e1 = np.ones(shape = (n,1))
-    q = np.hstack([e1,q])
-
-    predict_clusters_best=labels
-    iter_best = 0
-    conductance_best=100
-    conductance_best_acc = [0]*3
-
-    err = 1
-
-    conductance_stats = []
-
-    for i in range(tmax):
-        z = (1-beta)*P.dot(q)+ (beta)*Q.dot(q)
-        q_prev = q
-        q, _ = qr(z, mode='economic')
-        err = LA.norm(q-q_prev)/LA.norm(q)
-        if (i+1)%config.cluster_interval==0:
-            leading_eigenvectors = q[:,1:num_cluster+1]
-            predict_clusters, y = discretize(leading_eigenvectors)
-            
-            conductance_cur = 0
-            z_0 = config.alpha * y
-            z = z_0
-            for j in range(config.num_hop):
-                z = (1-config.alpha)*((1-beta)*P.dot(z)+ (beta)*Q.dot(z)) + z_0
-            # ctp=y.T@(P.dot(y))
-            # ctq=y.T@(Q@y)
-            ct=y.T@z
-            # cond_p = 1.0-np.trace(ctp)/num_cluster
-            # cond_q = 1.0-np.trace(ctq)/num_cluster
-            conductance_cur = 1.0-np.trace(ct)/num_cluster
-
-            if config.verbose:
-                # print(i, err, conductance_cur, cond_p, cond_q)
-                cm = clustering_metrics(config.labels, predict_clusters)
-                acc, nmi, f1, pre, adj_s, rec = cm.evaluationClusterModelFromLabel()
-                print(i, acc, nmi, f1, pre, adj_s)
-            conductance_stats.append(conductance_cur)
-                
-            if conductance_cur<conductance_best:
-                conductance_best = conductance_cur
-                predict_clusters_best = predict_clusters
-                iter_best = i
-
-            if config.cond_early_stop and early_stop(conductance_stats):
-                break
-
-            if err <= config.q_epsilon:
-                break
-
-    end_time = time.time()
-    peak_memory=0
-    peak_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
-
-    if config.verbose:
-        print("%f seconds in clustering"%(end_time-start_time))
-        print(np.unique(predict_clusters_best))
-        print("best iter: %d, best mhc: %f, acc: %f, %f, %f"%(iter_best, conductance_best, conductance_best_acc[0], conductance_best_acc[1], conductance_best_acc[2]))
-    cm = clustering_metrics(config.labels, predict_clusters_best)
-    acc, nmi, f1, pre, adj_s, rec = cm.evaluationClusterModelFromLabel()
-
-    print(f"{acc} {f1} {nmi} {adj_s} {end_time-start_time} {peak_memory}")
-    return [acc, nmi, f1, adj_s, end_time-start_time, peak_memory]
-
-def cluster_multi(adj, X, num_cluster, deg_dict, alpha=0.2, beta = 0.35, gamma=[0.5,0.5], t=5, tmax=200, ri=False, weighted_p=0):
-    n = config.adj[0].shape[1]
-
-    start_time = time.time()
-
-    knn = kneighbors_graph(X, config.knn_k-1, metric="cosine", mode="distance", n_jobs=16)
-    knn.data = 1.0-knn.data
-    knn = knn + knn.T #A_k
-    Q = normalize(knn, norm='l1')
-
-    P = [normalize(adj, norm='l1', axis=1) for adj in config.adj]
-    # Assume that sum(gamma)+beta==1
-    if len(gamma) != config.num_view:
-        gamma = [(1.-beta)/config.num_view]*config.num_view
-    P_linear = sum([pm*gamma[i] for i, pm in enumerate(P)])
-    num_topk_deg = num_cluster
-
-    from collections import Counter
-    deg_total=dict()
-    for i in range(len(deg_dict)):
-        deg_total=dict(Counter(deg_total)+Counter(deg_dict[i]))
-    topk_deg_nodes = heapq.nlargest(int(num_topk_deg), deg_total, key=deg_total.get)
-    PC = P_linear[:,topk_deg_nodes]
-
-    # topk_deg_nodes = sum[heapq.nlargest(int(num_topk_deg), sub_deg_dict, key=sub_deg_dict.get) for sub_deg_dict in deg_dict]
-    # topk_deg_nodes = [heapq.nlargest(int(num_topk_deg), sub_deg_dict, key=sub_deg_dict.get) for sub_deg_dict in deg_dict]
-    # PC = sum([P[num][:,topk_deg_nodes[num]] for num in range(config.num_view)])
-    M = PC
-    for i in range(config.init_iter):
-        M = (1-alpha)*P_linear.dot(M)+PC
-    class_evdsum = M.sum(axis=0).flatten().tolist()[0]
-    newcandidates = np.argpartition(class_evdsum, -num_cluster)[-num_cluster:]
-    M = M[:,newcandidates]
-    labels = np.asarray(np.argmax(M, axis=1)).flatten()
-    
-    if config.random_init is True:
-        lls = np.unique(labels)
-        for i in range(n):
-            ll = random.choice(lls)
-            labels[i] = ll
-    
-    M = csc_matrix((np.ones(len(labels)), (np.arange(0, M.shape[0]), labels)),shape=(M.shape))
-    M = M.todense()
-
-    Mss = np.sqrt(M.sum(axis=0))
-    Mss[Mss==0]=1
-    q = M*1.0/Mss
-
-    e1 = np.ones(shape = (n,1))
-    q = np.hstack([e1,q])
-
-    predict_clusters_best=labels
-    iter_best = 0
-    conductance_best=100
-    conductance_best_acc = [0]*3
-
-    err = 1
-    
-    conductance_stats = []
-
-    for i in range(tmax):
-        z = P_linear.dot(q)+ (beta)*Q.dot(q)
-        q_prev = q
-        q, _ = qr(z, mode='economic')
-        err = LA.norm(q-q_prev)/LA.norm(q)
-        if (i+1)%config.cluster_interval==0:
-            leading_eigenvectors = q[:,1:num_cluster+1]
-            predict_clusters, y = discretize(leading_eigenvectors)
-            
-            conductance_cur = 0
-            z_0 = config.alpha * y
-            z = z_0
-            for j in range(config.num_hop):
-                z = (1-config.alpha)*(P_linear.dot(z)+ (beta)*Q.dot(z)) + z_0
-            # ctp=y.T@(P_linear.dot(y))
-            # ctq=y.T@(Q@y)
-            ct=y.T@z
-            # cond_p = 1.0-np.trace(ctp)/num_cluster
-            # cond_q = 1.0-np.trace(ctq)/num_cluster
-            conductance_cur = 1.0-np.trace(ct)/num_cluster
-
-            if config.verbose:
-                # print(i, err, conductance_cur, cond_p, cond_q)
-                cm = clustering_metrics(config.labels, predict_clusters)
-                acc, nmi, f1, pre, adj_s, rec = cm.evaluationClusterModelFromLabel()
-                print(i, acc, nmi, f1, pre, adj_s)
-            conductance_stats.append(conductance_cur)
-                
-            if conductance_cur<conductance_best:
-                conductance_best = conductance_cur
-                predict_clusters_best = predict_clusters
-                iter_best = i
-
-            if config.cond_early_stop and early_stop(conductance_stats):
-                break
-
-            if err <= config.q_epsilon:
-                break
-
-    end_time = time.time()
-    peak_memory=0
-    peak_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
-
-    if config.verbose:
-        print("%f seconds in clustering"%(end_time-start_time))
-        print(np.unique(predict_clusters_best))
-        print("best iter: %d, best mhc: %f, acc: %f, %f, %f"%(iter_best, conductance_best, conductance_best_acc[0], conductance_best_acc[1], conductance_best_acc[2]))
-    cm = clustering_metrics(config.labels, predict_clusters_best)
-    acc, nmi, f1, pre, adj_s, rec = cm.evaluationClusterModelFromLabel()
-
-    print(f"{acc} {f1} {nmi} {adj_s} {end_time-start_time} {peak_memory}")
-    return [acc, nmi, f1, adj_s, end_time-start_time, peak_memory]
