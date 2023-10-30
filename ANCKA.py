@@ -9,7 +9,7 @@ from cluster import cluster
 
 p = argparse.ArgumentParser(description='Set parameter')
 p.add_argument('--data', type=str, default='coauthorship', help='for hypergraph to choose data type (coauthorship/cocitation)')
-p.add_argument('--dataset', type=str, default='cora', help='dataset name (e.g.: cora/dblp for coauthorship, cora/citeseer for cocitation)')
+p.add_argument('--dataset', type=str, default='imdb', help='dataset name (e.g.: cora/dblp for coauthorship, cora/citeseer for cocitation)')
 p.add_argument('--tmax', type=int, default=100, help='t_max parameter')
 p.add_argument('--seeds', type=int, default=0, help='seed for randomness')
 p.add_argument('--alpha', type=float, default=0.2, help='mhc parameter')
@@ -21,95 +21,50 @@ p.add_argument('--scale', action='store_true', help='use configurations for larg
 p.add_argument('--interval', type=int, default=5, help='interval between cluster predictions during orthogonal iterations')
 p.add_argument('--knn_k', type=int, default=50, help='knn k to build graph neighbors')
 p.add_argument('--init_iter', type=int, default=25, help='BCM iteration')
-p.add_argument('--graph_type', type=str, default='Hypergraph', help='graph type'
+p.add_argument('--graph_type', type=str, default='Multi', help='graph type'
                 '(e.g.: Hypergraph, Multi, Undirected, Directed)')
 
 args = p.parse_args()
 
+def random_walk(adj,type):
+
+    if type == "Hypergraph":
+        p_mat = [normalize(adj.T, norm='l1', axis=1), normalize(adj, norm='l1', axis=1)]
+    elif type =="Multi":
+        config.num_view = len(adj)
+        P = [normalize(layer_adj, norm='l1', axis=1) for layer_adj in adj]
+        p_mat = [sum([pm*1./config.num_view for i, pm in enumerate(P)])]
+    else:
+        p_mat = [normalize(adj, norm='l1', axis=1)]
+    return p_mat
 
 def run_ancka():
 
-    if config.graph_type == 'Hypergraph':
+    dataset = data.load(config.dataset,config.data,config.graph_type)
+    features = dataset['features_sp']
+    labels = dataset['labels']
+    adj = dataset['adj_sp']
+    num_nodes = dataset['n']
+    config.adj = adj
 
-        dataset = data.load(config.data, config.dataset)
-        features = dataset['features_sp']
-        num_nodes = dataset['n']
-        labels = dataset['labels']
-        labels = np.asarray(np.argmax(labels, axis=1)) if labels.ndim == 2 else labels
-        config.labels = labels
-        k  = len(np.unique(labels))
+    labels = np.asarray(np.argmax(labels, axis=1)) if labels.ndim == 2 else labels
+    config.labels = labels
+    k = len(np.unique(labels))
 
-        seed = config.seeds
-        np.random.seed(seed)
-        random.seed(seed)
+    seed = config.seeds
+    np.random.seed(seed)
+    random.seed(seed)
 
-        hg_adj = dataset['adj_sp']
-        config.adj = hg_adj
-        config.features = features.copy()
-        d_vec = np.asarray(config.adj.sum(0)).flatten()
-        deg_dict = {i: d_vec[i] for i in range(len(d_vec))}
-        p_mat = [normalize(hg_adj.T, norm='l1', axis=1), normalize(hg_adj, norm='l1', axis=1)]
+    config.features = features.copy()
+    p_mat = random_walk(config.adj,config.graph_type)
 
-    if config.graph_type == 'Directed' or config.graph_type == 'Undirected':
-
-        dataset = data.load_simple(config.graph_type,config.dataset)
-        features = dataset['features']
-        labels = dataset['labels']
-        adj = dataset['adj_sp']
-        num_nodes = dataset['n']
-        if config.graph_type == 'Undirected':
-            config.adj = adj
-        else:
-            config.adj = adj+adj.T
-
-        config.adj.data[config.adj.data>0]=1.0
-        config.knn_k -=1
-
-        labels = np.asarray(np.argmax(labels, axis=1)) if labels.ndim == 2 else labels
-        config.labels = labels
-        k = len(np.unique(labels))
-
-        seed = config.seeds
-        np.random.seed(seed)
-        random.seed(seed)
-
-        diagonal_indices = (np.arange(num_nodes), np.arange(num_nodes))
-        config.adj[diagonal_indices] = 0.0
-        config.features = features.copy()
-        d_vec = np.asarray(config.adj.sum(0)).flatten()
-        deg_dict = {i: d_vec[i] for i in range(len(d_vec))}
-        p_mat = [normalize(config.adj, norm='l1', axis=1)]
-
-    if config.graph_type == 'Multi':
-
-        if config.dataset == "acm":
-            dataset = data.load_acm()
-        if config.dataset == "imdb":
-            dataset = data.load_imdb()
-        if config.dataset == "dblp":
-            dataset = data.load_dblp()
-
-        features = dataset['features']
-        num_nodes = dataset['n']
-        labels = dataset['labels']
-        labels = np.asarray(np.argmax(labels, axis=1)) if labels.ndim == 2 else labels
-        config.labels = labels
-        k = len(np.unique(labels))
-        config.knn_k -=1
-
-        seed = config.seeds
-        np.random.seed(seed)
-        random.seed(seed)
-
-        adj_list = dataset['adj']
-        config.num_view = len(adj_list)
-        config.adj = adj_list
-        config.features = features.copy()
-        d_tvec = [np.asarray(adj.sum(0)).flatten() for adj in adj_list]
+    if config.graph_type=="Multi":
+        config.num_view = len(adj)
+        d_tvec = [np.asarray(layer_adj.sum(0)).flatten() for layer_adj in adj]
         deg_dict = {i: sum([layer_dvec[i] for layer_dvec in d_tvec]) for i in range(len(d_tvec[0]))}
-
-        P = [normalize(adj, norm='l1', axis=1) for adj in config.adj]
-        p_mat = [sum([pm*1./config.num_view for i, pm in enumerate(P)])]
+    else:
+        d_vec = np.asarray(config.adj.sum(0)).flatten()
+        deg_dict = {i: d_vec[i] for i in range(len(d_vec))}
 
     results = None
     results = cluster(p_mat, num_nodes, features, k, deg_dict, alpha=config.alpha, beta=config.beta, tmax=config.tmax, ri=False, weighted_p=config.weighted_p)

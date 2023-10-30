@@ -4,6 +4,22 @@ import pickle
 import scipy.io as sio
 import config
 
+def load(dataset,data,type):
+    if type=="Hypergraph":
+        data_dict=load_hyper(data,dataset)
+    elif type=="Undirected" or type=="Directed":
+        data_dict=load_simple(type,dataset)
+        config.knn_k -=1
+    else:
+        if dataset == "acm":
+            data_dict=load_acm()
+        if dataset == "imdb":
+            data_dict=load_imdb()
+        if dataset == "dblp":
+            data_dict=load_dblp()
+        config.knn_k -=1
+    return data_dict
+
 #load undirected npz
 def load_npz_dataset(file_name):
     """Load a graph from a Numpy binary file.
@@ -64,8 +80,6 @@ def load_simple(type,dataset):
         print(f'===== loading undirected {dataset} =====')
         data = sio.loadmat('{}{}.mat'.format(path_undirected, dataset))
         feature = data['fea']
-        # if not sp.issparse(feature):
-        #     feature = sp.csr_matrix(feature)
 
     elif type=='Directed':
         print(f'===== loading directed {dataset} =====')
@@ -75,19 +89,25 @@ def load_simple(type,dataset):
             feature = feature.todense()
         feature=sp.csr_matrix(feature)
 
-    adj_sp = sp.csr_matrix(data['W'])
+    adj = sp.csr_matrix(data['W'])
+    if type=='Directed':
+        adj = adj + adj.T
+    adj.data[adj.data>0]=1.0
+    diagonal_indices = (np.arange(feature.shape[0]), np.arange(feature.shape[0]))
+    adj[diagonal_indices] = 0.0
+
     labels = data['gnd']
     if type == 'Undirected':
         labels = labels.T
         labels = labels - 1
         labels = labels[0, :]
 
-    data_dict = {'features': feature, 'labels': labels, 'n': feature.shape[0], 'adj_sp': adj_sp}
+    data_dict = {'features_sp': feature, 'labels': labels, 'n': feature.shape[0], 'adj_sp': adj}
 
     return data_dict
 
 #load hyper graph
-def load(data, dataset):
+def load_hyper(data, dataset):
 
     if data == 'npz':
         data_dict = load_npz(dataset)
@@ -155,7 +175,8 @@ def load_acm():
 
     gt = np.array(gt)
 
-    return {'features': feature, 'labels': gt, 'n': feature.shape[0], 'adj': list_of_adj}
+    data_dict={'features_sp': feature, 'labels': gt, 'n': feature.shape[0], 'adj_sp': list_of_adj}
+    return data_dict
 
 def load_imdb():
     path = 'data/imdb/'
@@ -185,8 +206,8 @@ def load_imdb():
         else:
             gt.append(line)
     gt = np.array(gt)
-
-    return {'features': feature, 'labels': gt, 'n': feature.shape[0], 'adj': list_of_adj}
+    data_dict = {'features_sp': feature, 'labels': gt, 'n': feature.shape[0], 'adj_sp': list_of_adj}
+    return data_dict
 
 def load_dblp():
     path = 'data/dblpAttributed/'
@@ -206,7 +227,8 @@ def load_dblp():
 
     gt = np.load('{}{}.npy'.format(path, gt)).astype('int32')
 
-    return {'features': feature, 'labels': gt, 'n': feature.shape[0], 'adj': list_of_adj}
+    data_dict={'features_sp': feature, 'labels': gt, 'n': feature.shape[0], 'adj_sp': list_of_adj}
+    return data_dict
 
 class parser(object):
 

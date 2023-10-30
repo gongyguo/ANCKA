@@ -8,9 +8,9 @@ set=set2
         sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset query --data npz --graph_type Hypergraph  --beta 0.5 --knn_k 10
         sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset cora --data coauthorship --graph_type Hypergraph   --beta 0.5 --knn_k 10
         sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset cora --data cocitation --graph_type Hypergraph   --beta 0.5 --knn_k 10
-        # sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset citeseer --data cocitation --graph_type Hypergraph   --beta 0.5 --knn_k 10
-        # sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset 20news --data npz --graph_type Hypergraph   --beta 0.5 --knn_k 10
-        # sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset dblp --data coauthorship --graph_type Hypergraph   --beta 0.5 --knn_k 10
+        sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset citeseer --data cocitation --graph_type Hypergraph   --beta 0.5 --knn_k 10
+        sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset 20news --data npz --graph_type Hypergraph   --beta 0.5 --knn_k 10
+        sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset dblp --data coauthorship --graph_type Hypergraph   --beta 0.5 --knn_k 10
 
         echo "Undirected"
         sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset cora --graph_type Undirected  --beta 0.5 --knn_k 50
