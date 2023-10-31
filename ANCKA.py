@@ -24,19 +24,19 @@ p.add_argument('--interval', type=int, default=5, help='interval between cluster
 p.add_argument('--times', type=int, default=11, help='rerun gpu ANCKA version to calculate avg time and metric')
 p.add_argument('--knn_k', type=int, default=10, help='knn graph neighbors')
 p.add_argument('--init_iter', type=int, default=25, help='BCM iteration')
-p.add_argument('--graph_type', type=str, default='Multi', help='graph type'
-                '(e.g.: Hypergraph, Multi, Undirected, Directed)')
+p.add_argument('--network_type', type=str, default='MG', help='network type'
+                '(e.g.: HG, MG, UG, DG)')
 args = p.parse_args()
 
 def random_walk(adj,type):
 
-    if type == "Hypergraph":
+    if type == "HG":
         p_mat = [normalize(adj.T, norm='l1', axis=1), normalize(adj, norm='l1', axis=1)]
-    elif type =="Multi":
+    elif type =="MG":
         config.num_view = len(adj)
         P = [normalize(layer_adj, norm='l1', axis=1) for layer_adj in adj]
         p_mat = [sum([pm*1./config.num_view for i, pm in enumerate(P)])]
-    elif type =="Undirected" or type=="Directed":
+    elif type =="UG" or type=="DG":
         p_mat = [normalize(adj, norm='l1', axis=1)]
     else:
         raise NotImplementedError
@@ -44,7 +44,7 @@ def random_walk(adj,type):
 
 def run_ancka():
         
-    dataset = data.load(config.dataset,config.data,config.graph_type)
+    dataset = data.load(config.dataset,config.data,config.network_type)
     features = dataset['features_sp']
     labels = dataset['labels']
     labels = np.asarray(np.argmax(labels, axis=1)) if labels.ndim == 2 else labels
@@ -59,9 +59,9 @@ def run_ancka():
     adj = dataset['adj_sp']       
     config.adj = adj
     config.features = features.copy()
-    p_mat = random_walk(config.adj,config.graph_type)
+    p_mat = random_walk(config.adj,config.network_type)
     
-    if config.graph_type == 'Multi': 
+    if config.network_type == 'MG': 
         config.num_view = len(adj)
         d_tvec = [np.asarray(layer_adj.sum(0)).flatten() for layer_adj in adj]
         deg_dict = {i: sum([layer_dvec[i] for layer_dvec in d_tvec]) for i in range(num_nodes)}
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     config.verbose = args.verbose
     config.caltime = args.caltime
     config.cluster_interval = args.interval
-    config.graph_type = args.graph_type
+    config.network_type = args.network_type
     config.knn_k = args.knn_k
     config.init_iter = args.init_iter
 

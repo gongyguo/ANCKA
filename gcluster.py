@@ -185,7 +185,7 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
         t1= time.time()
         knn_time.append(t1-t0)
 
-        if beta>0.0 and config.graph_type=="Hypergraph":
+        if beta>0.0 and config.network_type=="HG":
             unconnected = np.asarray(P[1].sum(0)).flatten()==0
             Q[unconnected, :] *= (1./beta)
 
@@ -193,20 +193,20 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
         t2=time.time()
         Q_g = csr_matrix(Q)
         P0_g = csr_matrix(P[0])
-        if config.graph_type =="Hypergraph":
+        if config.network_type =="HG":
             P1_g = csr_matrix(P[1])
         stamp1=time.time()
         copy_time.append(stamp1-t2)
     
         t3=time.time()
         topk_deg_nodes = heapq.nlargest(int(num_cluster), deg_dict, key=deg_dict.get)
-        if config.graph_type == "Hypergraph":
+        if config.network_type == "HG":
             PC = P0_g@P1_g[:,topk_deg_nodes]
         else:
             PC = P0_g[:,topk_deg_nodes]
         M = PC
         for i in range(config.init_iter):
-            if config.graph_type == "Hypergraph":
+            if config.network_type == "HG":
                 M = (1-alpha)*P0_g@(P1_g.dot(M))+PC
             else:
                 M = (1-alpha)*P0_g.dot(M)+PC
@@ -231,7 +231,7 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
         for i in range(tmax):
 
             stamp3 = time.time()
-            if config.graph_type =="Hypergraph":
+            if config.network_type =="HG":
                 z = (1-beta)*P0_g@(P1_g.dot(q))+ (beta)*Q_g.dot(q)
             else:
                 z = (1-beta)*P0_g.dot(q)+ (beta)*Q_g.dot(q)
@@ -260,7 +260,7 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
                 z_0 = config.alpha * y
                 z = z_0
                 for j in range(config.num_hop):
-                    if config.graph_type =="Hypergraph":
+                    if config.network_type =="HG":
                         z = (1-config.alpha)*((1-beta)*P0_g@(P1_g.dot(z))+ (beta)*Q_g.dot(z)) + z_0
                     else:
                         z = (1-config.alpha)*((1-beta)*P0_g.dot(z)+ (beta)*Q_g.dot(z)) + z_0

@@ -5,9 +5,9 @@ import scipy.io as sio
 import config
 
 def load(dataset,data,type):
-    if type=="Hypergraph":
+    if type=="HG":
         data_dict=load_hyper(data,dataset)
-    elif type=="Undirected" or type=="Directed":
+    elif type=="UG" or type=="DG":
         data_dict=load_simple(type,dataset)
     else:
         if dataset == "acm":
@@ -74,12 +74,12 @@ def load_npz_dataset(file_name):
 def load_simple(type,dataset):
     path_directed = 'data/directed/'
     path_undirected = 'data/undirected/'
-    if type=='Undirected':
+    if type=='UG':
         print(f'===== loading undirected {dataset} =====')
         data = sio.loadmat('{}{}.mat'.format(path_undirected, dataset))
         feature = data['fea']
 
-    elif type=='Directed':
+    elif type=='DG':
         print(f'===== loading directed {dataset} =====')
         data = load_npz_dataset('{}{}.npz'.format(path_directed, dataset))
         feature = data['fea']
@@ -88,14 +88,14 @@ def load_simple(type,dataset):
         feature=sp.csr_matrix(feature)
 
     adj = sp.csr_matrix(data['W'])
-    if type=='Directed':
+    if type=='DG':
         adj = adj + adj.T
     adj.data[adj.data>0]=1.0
     diagonal_indices = (np.arange(feature.shape[0]), np.arange(feature.shape[0]))
     adj[diagonal_indices] = 0.0
 
     labels = data['gnd']
-    if type == 'Undirected':
+    if type == 'UG':
         labels = labels.T
         labels = labels - 1
         labels = labels[0, :]

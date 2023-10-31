@@ -111,7 +111,7 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
     start_time = time.time()
 
     #use identical setting as AHCKA
-    if not config.graph_type == "Hypergraph":
+    if not config.network_type == "HG":
         config.knn_k-=1
 
     if config.approx_knn:
@@ -134,13 +134,13 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
 
     num_topk_deg = num_cluster
     topk_deg_nodes = heapq.nlargest(int(num_topk_deg), deg_dict, key=deg_dict.get)
-    if config.graph_type=="Hypergraph":
+    if config.network_type=="HG":
         PC = P[0]@P[1][:,topk_deg_nodes]
     else:
         PC = P[0][:,topk_deg_nodes]
     M = PC
     for i in range(config.init_iter):
-        if config.graph_type=="Hypergraph":
+        if config.network_type=="HG":
             M = (1-alpha)*P[0]@(P[1].dot(M))+PC
         else:
             M = (1-alpha)*P[0].dot(M)+PC
@@ -172,7 +172,7 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
 
     err = 1
 
-    if beta>0.0 and config.graph_type=="Hypergraph":
+    if beta>0.0 and config.network_type=="HG":
         unconnected = np.asarray(config.adj.sum(0)).flatten()==0
         Q[unconnected, :] *= (1./beta)
     if config.approx_knn and config.beta<1:
@@ -183,7 +183,7 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
     conductance_stats = []
 
     for i in range(tmax):
-        if config.graph_type=="Hypergraph":
+        if config.network_type=="HG":
             z = (1-beta)*P[0]@(P[1].dot(q))+ (beta)*Q.dot(q)
         else:
             z = (1-beta)*P[0].dot(q)+ (beta)*Q.dot(q)
@@ -198,7 +198,7 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
             z_0 = config.alpha * y
             z = z_0
             for j in range(config.num_hop):
-                if config.graph_type=="Hypergraph":
+                if config.network_type=="HG":
                     z = (1-config.alpha)*((1-beta)*P[0]@(P[1].dot(z))+ (beta)*Q.dot(z)) + z_0
                 else:
                     z = (1-config.alpha)*((1-beta)*P[0].dot(z)+ (beta)*Q.dot(z)) + z_0
