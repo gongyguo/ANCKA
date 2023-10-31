@@ -9,7 +9,6 @@ def load(dataset,data,type):
         data_dict=load_hyper(data,dataset)
     elif type=="Undirected" or type=="Directed":
         data_dict=load_simple(type,dataset)
-        config.knn_k -=1
     else:
         if dataset == "acm":
             data_dict=load_acm()
@@ -17,7 +16,6 @@ def load(dataset,data,type):
             data_dict=load_imdb()
         if dataset == "dblp":
             data_dict=load_dblp()
-        config.knn_k -=1
     return data_dict
 
 #load undirected npz

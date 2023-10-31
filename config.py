@@ -28,12 +28,8 @@ init_iter = 25
 approx_knn = False
 cluster_interval = 5
 cond_early_stop = True
-plot_performance = False
 
 #GPU
 caltime = False
 gpu_usage = False
-dis = None
-plt = False
-param = None
-index = False
+gpu = False
