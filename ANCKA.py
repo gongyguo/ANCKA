@@ -36,8 +36,10 @@ def random_walk(adj,type):
         config.num_view = len(adj)
         P = [normalize(layer_adj, norm='l1', axis=1) for layer_adj in adj]
         p_mat = [sum([pm*1./config.num_view for i, pm in enumerate(P)])]
-    else:
+    elif type =="Undirected" or type=="Directed":
         p_mat = [normalize(adj, norm='l1', axis=1)]
+    else:
+        raise NotImplementedError
     return p_mat
 
 def run_ancka():
@@ -72,9 +74,6 @@ def run_ancka():
 
     if not config.gpu:
         from cluster import cluster
-        #use identical setting as AHCKA
-        if not config.graph_type == "Hypergraph":
-            config.knn_k-=1
         results = cluster(p_mat, num_nodes, features, k, deg_dict, alpha=config.alpha, beta=config.beta, tmax=config.tmax, ri=False, weighted_p=config.weighted_p)
     
     else:

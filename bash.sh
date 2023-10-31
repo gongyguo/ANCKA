@@ -27,7 +27,7 @@ set=set3
         sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset imdb --graph_type Multi  --beta 0.4 --knn_k 50
         sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset dblp --graph_type Multi  --beta 0.1 --knn_k 50
 
-}|tee  $OUTPUT1
+}|tee $OUTPUT1
 
 {
         echo "GPU based"
@@ -56,4 +56,4 @@ set=set3
         sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset imdb --graph_type Multi  --beta 0.4 --knn_k 50 --gpu
         sudo cset proc -s $set -e $PYTHON -- ANCKA.py --dataset dblp --graph_type Multi  --beta 0.1 --knn_k 50 --gpu
 
-}|tee  -a $OUTPUT2
+}|tee $OUTPUT2

@@ -110,6 +110,10 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
 
     start_time = time.time()
 
+    #use identical setting as AHCKA
+    if not config.graph_type == "Hypergraph":
+        config.knn_k-=1
+
     if config.approx_knn:
         import scann
         ftd = X.todense()
