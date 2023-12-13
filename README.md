@@ -16,11 +16,11 @@ additional library: cupy-cuda116, faiss-gpu=1.7.3=py3.9
 
 Hyper dataset available: Cora-CA, Cora-CC, Query, Citeseeer, 20News, DBLP 
 
-See https://github.com/CyanideCentral/AHCKA for MAG and AMAZON datasets, and download scann/faiss KNN searching index and collect in file INDEX/.
+See https://github.com/CyanideCentral/AHCKA for MAG and AMAZON datasets and put them in data/npz file, and download scann/faiss KNN searching index and collect in file INDEX/.
 
 Undirected/Directed dataset available: Cora, Undirected Citeseer, Wiki, Directed Citeseer.
 
-See https://renchi.ac.cn/datasets/ for Amazon2M and Tweibo dataset and put in data/npz file, and download faiss KNN searching index and collect in file INDEX/.
+See https://renchi.ac.cn/datasets/ for Amazon2M and Tweibo datasets and put them in data/npz file, and download faiss KNN searching index and collect in file INDEX/.
 
 Multiplex dataset available: ACM, DBLP, IMDB
 
