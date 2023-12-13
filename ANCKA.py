@@ -7,7 +7,7 @@ import argparse
 import random
 
 p = argparse.ArgumentParser(description='Set parameter')
-p.add_argument('--data', type=str, default='coauthorship', help='data type (coauthorship/cocitation)')
+p.add_argument('--data', type=str, default='none', help='data type (coauthorship/cocitation) for hypergraph')
 p.add_argument('--dataset', type=str, default='acm', help='dataset name (e.g.: cora/dblp for coauthorship, cora/citeseer for cocitation)')
 p.add_argument('--tmax', type=int, default=200, help='t_max parameter')
 p.add_argument('--seeds', type=int, default=0, help='seed for randomness')

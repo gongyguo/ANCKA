@@ -4,6 +4,7 @@ import pickle
 import scipy.io as sio
 import config
 
+#main load function
 def load(dataset,data,type):
     if type=="HG":
         data_dict=load_hyper(data,dataset)
@@ -18,7 +19,37 @@ def load(dataset,data,type):
             data_dict=load_dblp()
     return data_dict
 
-#load undirected npz
+#load directed and undirected graph
+def load_simple(type,dataset):
+    path_graph = 'data/graph/'
+    if config.approx_knn:
+        data = load_simple_lg(type, dataset)
+    else:
+        if type=='UG':
+            data = sio.loadmat('{}{}.mat'.format(path_graph, dataset))
+
+        elif type=='DG':
+            data = load_npz_dataset('{}{}.npz'.format(path_graph, dataset))
+
+    feature = data['fea']
+    adj = sp.csr_matrix(data['W'])
+    if type=='DG':
+        adj = adj + adj.T
+    adj.data[adj.data>0]=1.0
+    diagonal_indices = (np.arange(feature.shape[0]), np.arange(feature.shape[0]))
+    adj[diagonal_indices] = 0.0
+
+    labels = data['gnd']
+    if type == 'UG' and not config.approx_knn:
+        labels = labels.T
+        labels = labels - 1
+        labels = labels[0, :]
+
+    data_dict = {'features_sp': feature, 'labels': labels, 'n': feature.shape[0], 'adj_sp': adj}
+
+    return data_dict
+
+#load directed npz
 def load_npz_dataset(file_name):
     """Load a graph from a Numpy binary file.
     Parameters
@@ -70,40 +101,21 @@ def load_npz_dataset(file_name):
 
         return graph
 
-#load directed and undirected graph
-def load_simple(type,dataset):
-    path_directed = 'data/directed/'
-    path_undirected = 'data/undirected/'
-    if type=='UG':
-        print(f'===== loading undirected {dataset} =====')
-        data = sio.loadmat('{}{}.mat'.format(path_undirected, dataset))
-        feature = data['fea']
+#load scale graph
+def load_simple_lg(type,dataset):
 
-    elif type=='DG':
-        print(f'===== loading directed {dataset} =====')
-        data = load_npz_dataset('{}{}.npz'.format(path_directed, dataset))
-        feature = data['fea']
-        if sp.issparse(feature):
-            feature = feature.todense()
-        feature=sp.csr_matrix(feature)
+    adj = sp.load_npz(f'data/npz/{dataset}/graph.npz')
+    features = sp.load_npz(f'data/npz/{dataset}/features.npz')
+    labels = np.load(f'data/npz/{dataset}/labels.npy')
+    graph = {
+        'W': adj,
+        'fea': features,
+        'gnd': labels
+    }
+    # data_dict = {'features': features, 'features_sp':features, 'labels': labels, 'n': features.shape[0],'adj_sp': adj, "adj":adj}
 
-    adj = sp.csr_matrix(data['W'])
-    if type=='DG':
-        adj = adj + adj.T
-    adj.data[adj.data>0]=1.0
-    diagonal_indices = (np.arange(feature.shape[0]), np.arange(feature.shape[0]))
-    adj[diagonal_indices] = 0.0
-
-    labels = data['gnd']
-    if type == 'UG':
-        labels = labels.T
-        labels = labels - 1
-        labels = labels[0, :]
-
-    data_dict = {'features_sp': feature, 'labels': labels, 'n': feature.shape[0], 'adj_sp': adj}
-
-    return data_dict
-
+    return graph
+    
 #load hyper graph
 def load_hyper(data, dataset):
 
@@ -140,6 +152,7 @@ def load_hyper(data, dataset):
         data_dict = {'features': features.todense(), 'features_sp':features, 'labels': labels, 'n': features.shape[0], 'e': len(hypergraph), 'name': dataset, 'adj': adj, 'adj_sp': adj_sp}
     return data_dict
 
+#load hyper npz
 def load_npz(dataset):
     hg_adj = sp.load_npz(f'data/npz/{dataset}/hypergraph.npz')
     np.clip(hg_adj.data, 0, 1, out=hg_adj.data)
@@ -147,6 +160,7 @@ def load_npz(dataset):
     labels = np.load(f'data/npz/{dataset}/labels.npy')
     return {'features_sp': features, 'labels': labels, 'n': features.shape[0], 'e': hg_adj.shape[0], 'name': dataset, 'adj': hg_adj, 'adj_sp': hg_adj}
 
+#load MG
 def load_acm():
     feature = 'feature'
     path = 'data/acm/'

@@ -22,7 +22,6 @@ cluster_interval = 5
 cond_early_stop = True
 tmax = 1000
 verbose = False
-graph_type = None
 
 init_iter = 25
 approx_knn = False

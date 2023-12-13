@@ -164,7 +164,7 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
 
         orth_temp = dis_temp = mhc_temp= 0
 
-        if config.approx_knn and config.beta<1:
+        if config.approx_knn and config.network_type=="HG":
             mask = np.ones(P[0].shape[0])
             mask[np.argwhere(X.sum(1)==0)[:,0]]*=(1./(1-beta))
             P1 = [sp.diags(mask)@P[0], P[1]]
@@ -224,7 +224,7 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
         stamp2 = time.time()
         init_time.append(stamp2-t3)
 
-        if config.approx_knn:
+        if config.approx_knn and config.network_type == "HG":
             P0_g = csr_matrix(P1[0])
             
         # orthogonal iterations
@@ -237,10 +237,7 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
                 z = (1-beta)*P0_g.dot(q)+ (beta)*Q_g.dot(q)
 
             if i == 0:
-                if config.dataset.startswith('20news') or config.dataset.startswith('query'):
-                    z = cp.around(z,14)
-                else:
-                    z = cp.around(z,15)
+                z = cp.around(z,15)
 
             q_prev = q
             q, r = cLA.qr(z, mode='reduced')

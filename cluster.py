@@ -111,10 +111,10 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
     start_time = time.time()
 
     #use identical setting as AHCKA
-    if not config.network_type == "HG":
+    if not config.network_type == "HG" and config.approx_knn:
         config.knn_k-=1
 
-    if config.approx_knn:
+    if config.approx_knn and config.network_type == "HG":
         import scann
         ftd = X.todense()
         if config.dataset.startswith('amazon'):
@@ -123,6 +123,18 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
             searcher = scann.scann_ops_pybind.load_searcher('scann_magpm')
         neighbors, distances = searcher.search_batched_parallel(ftd)
         del ftd
+        knn = sp.csr_matrix(((distances.ravel()), neighbors.ravel(), np.arange(0, neighbors.size+1, neighbors.shape[1])), shape=(n, n))
+        knn.setdiag(0.0)
+
+    elif config.approx_knn and (config.network_type == "UG" or config.network_type == "DG"):
+        import faiss
+        X= X.astype(np.float32).tocoo()
+        ftd = np.zeros(X.shape, X.dtype)
+        ftd[X.row, X.col] = X.data
+        faiss.normalize_L2(ftd)
+        print(ftd.shape)
+        index = faiss.read_index(f"INDEX/{config.dataset}_cpu.index")
+        distances, neighbors = index.search(ftd, config.knn_k+1)
         knn = sp.csr_matrix(((distances.ravel()), neighbors.ravel(), np.arange(0, neighbors.size+1, neighbors.shape[1])), shape=(n, n))
         knn.setdiag(0.0)
 
@@ -175,7 +187,7 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
     if beta>0.0 and config.network_type=="HG":
         unconnected = np.asarray(config.adj.sum(0)).flatten()==0
         Q[unconnected, :] *= (1./beta)
-    if config.approx_knn and config.beta<1:
+    if config.approx_knn and config.network_type=="HG":
         mask = np.ones(P[0].shape[0])
         mask[np.argwhere(X.sum(1)==0)[:,0]]*=(1./(1-beta))
         P = [sp.diags(mask)@P[0], P[1]]
