@@ -108,7 +108,7 @@ if __name__ == '__main__':
     if args.gpu_usage:
         config.gpu_usage = True
     
-    print(f"dataset:{config.dataset} data:{config.data}")
+    print(f"dataset:{config.dataset} data:{config.data} network_type:{config.network_type}")
     print(f"parameter setting: k={config.knn_k} init_iter={config.init_iter} beta={config.beta}")
     acc, nmi, f1, adj_s, time, _= run_ancka()
     print(f"ACC={format(acc,'.3f')} F1={format(f1,'.3f')} NMI={format(nmi,'.3f')} ARI={format(adj_s,'.3f')} Time={format(time,'.3f')}s")
