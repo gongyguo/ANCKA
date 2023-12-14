@@ -21,7 +21,7 @@ p.add_argument('--caltime', action='store_true', help='calculate time of each pa
 p.add_argument('--gpu_usage', action='store_true', help='calculate gpu usage')
 p.add_argument('--gpu', action='store_true', help='use gpu ANCKA version for clustering')
 p.add_argument('--interval', type=int, default=5, help='interval between cluster predictions during orthogonal iterations')
-p.add_argument('--times', type=int, default=11, help='rerun gpu ANCKA version to calculate avg time and metric')
+p.add_argument('--times', type=int, default=10, help='rerun gpu ANCKA version to calculate avg time and metric')
 p.add_argument('--knn_k', type=int, default=10, help='knn graph neighbors')
 p.add_argument('--init_iter', type=int, default=25, help='BCM iteration')
 p.add_argument('--network_type', type=str, default='MG', help='network type'
@@ -108,8 +108,9 @@ if __name__ == '__main__':
     if args.gpu_usage:
         config.gpu_usage = True
     
-    print(config.dataset+' '+config.data+": knn neighbors = " + str(config.knn_k))
-    print(f"{config.knn_k} {config.init_iter} {config.beta}")
-    run_ancka()
+    print(f"dataset:{config.dataset} data:{config.data}")
+    print(f"parameter setting: k={config.knn_k} init_iter={config.init_iter} beta={config.beta}")
+    acc, nmi, f1, adj_s, time, _= run_ancka()
+    print(f"ACC={format(acc,'.3f')} F1={format(f1,'.3f')} NMI={format(nmi,'.3f')} ARI={format(adj_s,'.3f')} Time={format(time,'.3f')}s")
 
 

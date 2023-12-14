@@ -330,11 +330,9 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
         pure_time.append(end_time-start_time-(stamp1-t2))
 
         if test_time == times-1:
-
-            print("time:"+ f"{np.mean(total_time[1:])} {np.mean(pure_time[1:])}")
-            print("mean:"+ f"{np.mean(acc_list)} {np.mean(f1_list)} {np.mean(nmi_list)} {np.mean(ari_list)}")
-            print("std :"+ f"{np.std(acc_list)} {np.std(f1_list)} {np.std(nmi_list)} {np.std(ari_list)}")
-            
-            print(f"{acc} {f1} {nmi} {adj_s} {end_time-start_time} {peak_memory}")
+            # print("time:"+ f"{np.mean(total_time[1:])} {np.mean(pure_time[1:])}")
+            # print("mean:"+ f"{np.mean(acc_list)} {np.mean(f1_list)} {np.mean(nmi_list)} {np.mean(ari_list)}")
+            # print("std :"+ f"{np.std(acc_list)} {np.std(f1_list)} {np.std(nmi_list)} {np.std(ari_list)}")
+            # print(f"{acc} {f1} {nmi} {adj_s} {end_time-start_time} {peak_memory}")
             return [acc, nmi, f1, adj_s, np.mean(total_time),peak_memory]
 

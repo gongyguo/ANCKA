@@ -111,7 +111,7 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
     start_time = time.time()
 
     #use identical setting as AHCKA
-    if not config.network_type == "HG" and config.approx_knn:
+    if not config.network_type == "HG" or config.approx_knn:
         config.knn_k-=1
 
     if config.approx_knn and config.network_type == "HG":
@@ -132,7 +132,6 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
         ftd = np.zeros(X.shape, X.dtype)
         ftd[X.row, X.col] = X.data
         faiss.normalize_L2(ftd)
-        print(ftd.shape)
         index = faiss.read_index(f"INDEX/{config.dataset}_cpu.index")
         distances, neighbors = index.search(ftd, config.knn_k+1)
         knn = sp.csr_matrix(((distances.ravel()), neighbors.ravel(), np.arange(0, neighbors.size+1, neighbors.shape[1])), shape=(n, n))
@@ -243,6 +242,6 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
     cm = clustering_metrics(config.labels, predict_clusters_best)
     acc, nmi, f1, pre, adj_s, rec = cm.evaluationClusterModelFromLabel()
 
-    print(f"{acc} {f1} {nmi} {adj_s} {end_time-start_time} {peak_memory}")
+    # print(f"{acc} {f1} {nmi} {adj_s} {end_time-start_time} {peak_memory}")
     return [acc, nmi, f1, adj_s, end_time-start_time, peak_memory]
 
