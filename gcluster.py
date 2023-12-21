@@ -19,15 +19,10 @@ import signal
 import subprocess
 import faiss 
 
-switch_gpu = 1
+switch_gpu = 0
 gpu_usage = []
 flops = []
 total_time = []
-pure_time = []
-acc_list=[]
-f1_list=[]
-nmi_list=[]
-ari_list=[]
 orth_time = [] 
 copy_time = []
 dis_time = []
@@ -127,22 +122,21 @@ class clustering_metrics():
 
         return acc, nmi, f1, pre, adjscore, rc
     
-def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35, t=5, tmax=1000, ri=False, weighted_p=0):
+def cluster(times, P, ftd, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35, t=5, tmax=1000, ri=False, weighted_p=0):
     
     n = num_node
-    if sp.issparse(X):
-        ftd = np.array(X.todense(),order='C').astype('float32')
-    else:
-        ftd = np.array(X,order='C').astype('float32')
-    faiss.normalize_L2(ftd)
 
     if config.approx_knn:
-
+        faiss.normalize_L2(ftd)
         index =faiss.read_index(f'INDEX/{config.dataset}.index')
 
     else:
+        ftd = cp.asarray(ftd)
+        ftd = (ftd / cp.sqrt((cp.square(ftd)).sum(axis=1))[:, cp.newaxis])
+        ftd[cp.isnan(ftd)]=0
+        ftd[cp.isinf(ftd)]=0
         index = faiss.index_factory(ftd.shape[1], "Flat", faiss.METRIC_INNER_PRODUCT)
-        index.add(ftd)
+        index.add(ftd.get())
     
     gpu_index = faiss.index_cpu_to_gpu(res, 0 , index, co)
 
@@ -177,7 +171,7 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
         conductance_stats = []
 
         t0 = time.time()
-        distances, neighbors = gpu_index.search(ftd, config.knn_k+1)       
+        distances, neighbors = gpu_index.search(ftd.get(), config.knn_k+1)       
         knn = sp.csr_matrix((distances.ravel(), neighbors.ravel(), np.arange(0, neighbors.size+1, neighbors.shape[1])), shape=(num_node,num_node))
         knn.setdiag(0.0)
         knn = knn + knn.T #A_k
@@ -266,6 +260,8 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
                 stamp7 = time.time()
                 mhc_temp +=stamp7-stamp6
 
+                if config.verbose:
+                    print(i, err, conductance_cur)
                 conductance_stats.append(conductance_cur)
                     
                 if conductance_cur<conductance_best:
@@ -322,17 +318,8 @@ def cluster(times, P, X, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35
                 print("gpu_flops_percent: " + f"{np.mean(flops)} {np.mean(flops[1:])}" )
                 print(flops)
         
-        acc_list.append(acc)
-        f1_list.append(f1)
-        nmi_list.append(nmi)
-        ari_list.append(adj_s)
         total_time.append(gpu_time/1000)
-        pure_time.append(end_time-start_time-(stamp1-t2))
 
         if test_time == times-1:
-            # print("time:"+ f"{np.mean(total_time[1:])} {np.mean(pure_time[1:])}")
-            # print("mean:"+ f"{np.mean(acc_list)} {np.mean(f1_list)} {np.mean(nmi_list)} {np.mean(ari_list)}")
-            # print("std :"+ f"{np.std(acc_list)} {np.std(f1_list)} {np.std(nmi_list)} {np.std(ari_list)}")
-            # print(f"{acc} {f1} {nmi} {adj_s} {end_time-start_time} {peak_memory}")
             return [acc, nmi, f1, adj_s, np.mean(total_time),peak_memory]
 

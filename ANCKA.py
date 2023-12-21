@@ -1,6 +1,7 @@
 #-- coding:utf-8 --
 import config
 import numpy as np
+import scipy.sparse as sp
 from data import data
 from sklearn.preprocessing import normalize
 import argparse
@@ -17,7 +18,7 @@ p.add_argument('--metric', type=bool, default=False, help='calculate additional 
 p.add_argument('--weighted_p', type=int, default=0, help='use transition matrix p weighted by attribute similarity')
 p.add_argument('--verbose', action='store_true', help='print verbose logs')
 p.add_argument('--scale', action='store_true', help='use configurations for large-scale data')
-p.add_argument('--caltime', action='store_true', help='calculate time of each part of gpu ANCKA version')
+p.add_argument('--caltime', action='store_true', help='calculate time of different part of ANCKA')
 p.add_argument('--gpu_usage', action='store_true', help='calculate gpu usage')
 p.add_argument('--gpu', action='store_true', help='use gpu ANCKA version for clustering')
 p.add_argument('--interval', type=int, default=5, help='interval between cluster predictions during orthogonal iterations')
@@ -79,6 +80,9 @@ def run_ancka():
     else:
         from gcluster import cluster
         times = args.times
+        if sp.issparse(features):
+            features = features.todense()
+        features = np.asarray(features,order='C').astype('float32')
         results = cluster(times, p_mat, features, k, num_nodes, deg_dict, alpha=config.alpha, beta=config.beta, tmax=config.tmax, ri=False, weighted_p=config.weighted_p)
 
     return results

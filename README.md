@@ -14,15 +14,15 @@ additional library: cupy-cuda116, faiss-gpu=1.7.3=py3.9
 
 ## Dataset (Multipile types of attributed network)
 
-Hyper dataset available: Cora-CA, Cora-CC, Query, Citeseeer, 20News, DBLP 
+Availabe dataset in this repro:
 
-See https://github.com/CyanideCentral/AHCKA for preprocessed and raw MAG and AMAZON datasets and put them in data/npz file, and download scann/faiss KNN searching index and collect in file INDEX/.
+Hyper dataset: Cora-CA, Cora-CC, Query, Citeseeer, 20News, DBLP 
 
-Undirected/Directed dataset available: Cora, Undirected Citeseer, Wiki, Directed Citeseer.
+Undirected/Directed dataset: Cora, Undirected Citeseer, Wiki, Directed Citeseer.
 
-See https://renchi.ac.cn/datasets/ for raw Amazon2M and Tweibo datasets and put them in data/npz file, and download faiss KNN searching index and collect in file INDEX/.
+Multiplex dataset: ACM, DBLP, IMDB
 
-Multiplex dataset available: ACM, DBLP, IMDB
+See four large-scale datasets [preprocessed and raw Amazon/Magpm/Tweibo/Amazon2M datasets](https://github.com/CyanideCentral/AHCKA) and put them in data/npz file, and download INDEX file containing faiss KNN searching index.
 
 ## Reproduce command and hyperparameter setting
 

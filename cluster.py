@@ -143,6 +143,10 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
     knn = knn + knn.T #A_k
     Q = normalize(knn, norm='l1')
 
+    if config.caltime:
+        t1 = time.time()
+        print(f"knn_time: {t1-start_time}")
+
     num_topk_deg = num_cluster
     topk_deg_nodes = heapq.nlargest(int(num_topk_deg), deg_dict, key=deg_dict.get)
     if config.network_type=="HG":
@@ -183,6 +187,10 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
 
     err = 1
 
+    if config.caltime:
+        t2 = time.time()
+        print(f"init_time: {t2-t1}")
+
     if beta>0.0 and config.network_type=="HG":
         unconnected = np.asarray(config.adj.sum(0)).flatten()==0
         Q[unconnected, :] *= (1./beta)
@@ -201,6 +209,7 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
         q_prev = q
         q, _ = qr(z, mode='economic')
         err = LA.norm(q-q_prev)/LA.norm(q)
+
         if (i+1)%config.cluster_interval==0:
             leading_eigenvectors = q[:,1:num_cluster+1]
             predict_clusters, y = discretize(leading_eigenvectors)
@@ -217,7 +226,7 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
             conductance_cur = 1.0-np.trace(ct)/num_cluster
 
             if config.verbose:
-                print(i, err, conductance_cur, cond_p, cond_q)
+                print(i, err, conductance_cur)
             conductance_stats.append(conductance_cur)
                 
             if conductance_cur<conductance_best:
@@ -231,6 +240,10 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
             if err <= config.q_epsilon:
                 break
 
+    if config.caltime:
+        t3 = time.time()
+        print(f"orth_time: {t3-t2}")
+        
     end_time = time.time()
     peak_memory=0
     peak_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
