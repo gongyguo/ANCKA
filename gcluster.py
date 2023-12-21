@@ -147,15 +147,6 @@ def cluster(times, P, ftd, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.
         start_gpu.record()
         start_time = time.time()
 
-        if config.gpu_usage:
-            outfile = f"profile/{config.dataset}_{config.data}_{test_time}.csv"
-            if config.approx_knn:
-                ms = 500
-            else:
-                ms = 1
-            cmd = "nvidia-smi -i " +str(switch_gpu)+ " -lms " +str(ms) +" --query-gpu=timestamp,pstate,temperature.gpu,utilization.gpu,utilization.memory,memory.total,memory.free,memory.used,clocks.current.graphics,clocks.current.sm --format=csv |tee " + outfile
-            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid) 
-
         orth_temp = dis_temp = mhc_temp= 0
 
         if config.approx_knn and config.network_type=="HG":
@@ -284,16 +275,6 @@ def cluster(times, P, ftd, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.
         gpu_time = cp.cuda.get_elapsed_time(start_gpu, end_gpu)
         peak_memory=0
         peak_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
-
-        if config.gpu_usage:
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-            import pandas as pd
-            df = pd.read_csv(outfile,encoding="utf-8")
-            gpu_utilization = np.array(df[' utilization.gpu [%]'].str.extract('(\d+)')).astype(np.float32).flatten()
-            gpu_usage.append(np.mean(gpu_utilization))
-            gpu_clock =np.array(df[' clocks.current.graphics [MHz]'].str.extract('(\d+)')).astype(np.float32).flatten()
-            gpu_flops = (gpu_utilization/1700)*gpu_clock
-            flops.append(np.mean(gpu_flops))
         
         predict_clusters_best=cp.asnumpy(predict_clusters_best)
         cm = clustering_metrics(config.labels, predict_clusters_best)
@@ -312,11 +293,6 @@ def cluster(times, P, ftd, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.
             print(dis_time)
             print("calmhc time: " + f"{np.mean(mhc_time[1:])}" )
             print(mhc_time)
-            if config.gpu_usage:
-                print("gpu_utilization_avg: " + f"{np.mean(gpu_usage)} {np.mean(gpu_usage[1:])}" )
-                print(gpu_usage)
-                print("gpu_flops_percent: " + f"{np.mean(flops)} {np.mean(flops[1:])}" )
-                print(flops)
         
         total_time.append(gpu_time/1000)
 

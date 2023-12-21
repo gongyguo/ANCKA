@@ -30,5 +30,4 @@ cond_early_stop = True
 
 #GPU
 caltime = False
-gpu_usage = False
 gpu = False

@@ -19,7 +19,6 @@ p.add_argument('--weighted_p', type=int, default=0, help='use transition matrix 
 p.add_argument('--verbose', action='store_true', help='print verbose logs')
 p.add_argument('--scale', action='store_true', help='use configurations for large-scale data')
 p.add_argument('--caltime', action='store_true', help='calculate time of different part of ANCKA')
-p.add_argument('--gpu_usage', action='store_true', help='calculate gpu usage')
 p.add_argument('--gpu', action='store_true', help='use gpu ANCKA version for clustering')
 p.add_argument('--interval', type=int, default=5, help='interval between cluster predictions during orthogonal iterations')
 p.add_argument('--times', type=int, default=10, help='rerun gpu ANCKA version to calculate avg time and metric')
