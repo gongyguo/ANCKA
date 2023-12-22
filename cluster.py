@@ -111,16 +111,16 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
     start_time = time.time()
 
     #use identical setting as AHCKA
-    if not config.network_type == "HG" or config.approx_knn:
+    if (not config.network_type == "HG") and (not config.approx_knn):
         config.knn_k-=1
-
+    
     if config.approx_knn and config.network_type == "HG":
         import scann
         ftd = X.todense()
         if config.dataset.startswith('amazon'):
             searcher = scann.scann_ops_pybind.load_searcher('scann_amazon')
         else:
-            searcher = scann.scann_ops_pybind.load_searcher('scann_magpm')
+            searcher = scann.scann_ops_pybind.load_searcher('scann_magphy')
         neighbors, distances = searcher.search_batched_parallel(ftd)
         del ftd
         knn = sp.csr_matrix(((distances.ravel()), neighbors.ravel(), np.arange(0, neighbors.size+1, neighbors.shape[1])), shape=(n, n))
