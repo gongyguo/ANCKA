@@ -74,15 +74,16 @@ def run_ancka():
 
     if not config.gpu:
         from cluster import cluster
-        results = cluster(p_mat, num_nodes, features, k, deg_dict, alpha=config.alpha, beta=config.beta, tmax=config.tmax, ri=False, weighted_p=config.weighted_p)
+        results = cluster(p_mat, num_nodes, features, k, deg_dict, alpha=config.alpha, beta=config.beta, tmax=config.tmax)
     
     else:
         from gcluster import cluster
         times = args.times
+        ftd = features
         if sp.issparse(features):
-            features = features.todense()
-        features = np.asarray(features,order='C').astype('float32')
-        results = cluster(times, p_mat, features, k, num_nodes, deg_dict, alpha=config.alpha, beta=config.beta, tmax=config.tmax, ri=False, weighted_p=config.weighted_p)
+            ftd = features.todense()
+        ftd = np.asarray(ftd,order='C').astype('float32')
+        results = cluster(times, p_mat,num_nodes,features, ftd, k, deg_dict, alpha=config.alpha, beta=config.beta, tmax=config.tmax)
 
     return results
 
@@ -107,10 +108,7 @@ if __name__ == '__main__':
 
     if args.gpu:
         config.gpu = True
-
-    if args.gpu_usage:
-        config.gpu_usage = True
-    
+  
     print(f"dataset:{config.dataset} data:{config.data} network_type:{config.network_type}")
     print(f"parameter setting: k={config.knn_k} init_iter={config.init_iter} beta={config.beta}")
     acc, nmi, f1, adj_s, time, _= run_ancka()

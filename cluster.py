@@ -106,7 +106,7 @@ class clustering_metrics():
 
         return acc, nmi, f1, pre, adjscore, rc
 
-def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200, ri=False, weighted_p=0):
+def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200):
 
     start_time = time.time()
 
@@ -132,7 +132,7 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
         ftd = np.zeros(X.shape, X.dtype)
         ftd[X.row, X.col] = X.data
         faiss.normalize_L2(ftd)
-        index = faiss.read_index(f"INDEX/{config.dataset}_cpu.index")
+        index = faiss.read_index(f"data/INDEX/{config.dataset}_cpu.index")
         distances, neighbors = index.search(ftd, config.knn_k+1)
         knn = sp.csr_matrix(((distances.ravel()), neighbors.ravel(), np.arange(0, neighbors.size+1, neighbors.shape[1])), shape=(n, n))
         knn.setdiag(0.0)

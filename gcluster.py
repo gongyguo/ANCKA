@@ -122,21 +122,20 @@ class clustering_metrics():
 
         return acc, nmi, f1, pre, adjscore, rc
     
-def cluster(times, P, ftd, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.35, t=5, tmax=1000, ri=False, weighted_p=0):
+def cluster(times, P, n, X, ftd, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=1000):
     
-    n = num_node
-
     if config.approx_knn:
         faiss.normalize_L2(ftd)
-        index =faiss.read_index(f'INDEX/{config.dataset}.index')
+        index =faiss.read_index(f'data/INDEX/{config.dataset}.index')
 
     else:
         ftd = cp.asarray(ftd)
         ftd = (ftd / cp.sqrt((cp.square(ftd)).sum(axis=1))[:, cp.newaxis])
         ftd[cp.isnan(ftd)]=0
         ftd[cp.isinf(ftd)]=0
+        ftd = ftd.get()
         index = faiss.index_factory(ftd.shape[1], "Flat", faiss.METRIC_INNER_PRODUCT)
-        index.add(ftd.get())
+        index.add(ftd)
     
     gpu_index = faiss.index_cpu_to_gpu(res, 0 , index, co)
 
@@ -162,8 +161,8 @@ def cluster(times, P, ftd, num_cluster, num_node, deg_dict, alpha=0.2, beta = 0.
         conductance_stats = []
 
         t0 = time.time()
-        distances, neighbors = gpu_index.search(ftd.get(), config.knn_k+1)       
-        knn = sp.csr_matrix((distances.ravel(), neighbors.ravel(), np.arange(0, neighbors.size+1, neighbors.shape[1])), shape=(num_node,num_node))
+        distances, neighbors = gpu_index.search(ftd, config.knn_k+1)       
+        knn = sp.csr_matrix((distances.ravel(), neighbors.ravel(), np.arange(0, neighbors.size+1, neighbors.shape[1])), shape=(n,n))
         knn.setdiag(0.0)
         knn = knn + knn.T #A_k
         Q = normalize(knn, norm='l1')
