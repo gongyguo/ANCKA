@@ -1,14 +1,27 @@
-# ANCKA and ANCKA-GPU
-This repository contains the extension research work for AHCKA
+## ANCKA: A Versatile Framework for Attributed Network Clustering via K-Nearest Neighbor Augmentation
+This repository contains the extension research work for AHCKA (following ciation), namely ANCKA
+
+    @article{LiYS23,
+      author       = {Yiran Li and
+                      Renchi Yang and
+                      Jieming Shi},
+      title        = {Efficient and Effective Attributed Hypergraph Clustering via K-Nearest
+                      Neighbor Augmentation},
+      journal      = {Proc. {ACM} Manag. Data},
+      volume       = {1},
+      number       = {2},
+      pages        = {116:1--116:23},
+      year         = {2023}
+    }
 
 ## Pre-requisites
 unzip all zip file in data/
 
 CPU based AHCKA (python 3.9)
 
-numpy, scipy, scikit-learn
+numpy, scipy, scikit-learn, faiss-cpu/scann for large-scale graph
 
-GPU based AHCKA
+GPU based AHCKA (python 3.9)
 
 additional library: cupy-cuda116, faiss-gpu=1.7.3=py3.9
 
@@ -22,11 +35,11 @@ Undirected/Directed dataset: Cora, Undirected Citeseer, Wiki, Directed Citeseer.
 
 Multiplex dataset: ACM, DBLP, IMDB
 
-See four large-scale datasets [preprocessed and raw Amazon/Magpm/Tweibo/Amazon2M datasets](https://github.com/CyanideCentral/AHCKA) and put them in data/npz file, and download INDEX file containing faiss KNN searching index.
+Download [four large-scale datasets and used scann/faiss KNN index](https://github.com/CyanideCentral/AHCKA) and put them in data/ file.
 
 ## Reproduce command and hyperparameter setting
 
-Refer to [command.sh](command.sh) for cpu and gpu based ANCKA 
+Refer to [command.sh](command.sh) for cpu and gpu based ANCKA's running command and hyperparameter setting 
 
 ## Sample output
 ```
