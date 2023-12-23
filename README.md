@@ -1,5 +1,6 @@
-## ANCKA: A Versatile Framework for Attributed Network Clustering via K-Nearest Neighbor Augmentation
-This repository contains the extension research work for AHCKA (following ciation), namely ANCKA
+# ANCKA: A Versatile Framework for Attributed Network Clustering via K-Nearest Neighbor Augmentation
+
+This repository contains the ANCKA clustering framework for general attributed networks, extended from the previously published AHCKA algorithm for attributed hypergraph:
 
     @article{LiYS23,
       author       = {Yiran Li and
@@ -15,21 +16,24 @@ This repository contains the extension research work for AHCKA (following ciatio
     }
 
 ## Pre-requisites
-unzip all zip file in data/
 
-CPU based AHCKA (python 3.9)
+1. Unzip all zip file in data/
 
-numpy, scipy, scikit-learn, faiss-cpu/scann for large-scale graph
+2. Prepare Python environment with pip or conda:
 
-GPU based AHCKA (python 3.9)
+- Python version 3.9
 
-additional library: cupy-cuda116, faiss-gpu=1.7.3=py3.9
+- numpy, scipy, scikit-learn
+
+- Optional libraries for large-scale networks: faiss-cpu/scann
+
+- Optional libraries for ANCKA-GPU: cupy-cuda116, faiss-gpu=1.7.3=py3.9
 
 ## Dataset (Multipile types of attributed network)
 
-Availabe dataset in this repro:
+Available dataset in this repro:
 
-Hyper dataset: Cora-CA, Cora-CC, Query, Citeseeer, 20News, DBLP 
+Hyper dataset: Cora-CA, Cora-CC, Query, Citeseer, 20News, DBLP 
 
 Undirected/Directed dataset: Cora, Undirected Citeseer, Wiki, Directed Citeseer.
 
@@ -42,6 +46,7 @@ Download [four large-scale datasets and used scann/faiss KNN index](https://gith
 Refer to [command.sh](command.sh) for cpu and gpu based ANCKA's running command and hyperparameter setting 
 
 ## Sample output
+
 ```
 CPU based
 dataset:cora data:none network_type:UG
