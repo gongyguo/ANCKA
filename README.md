@@ -77,14 +77,14 @@ Other parameters are optional:
 | --tmax     | 200     | $T_{a}$, the maximum number of orthogonal iterations                                                          |
 | --interval | 5       | $\tau$, the interval of computing discrete cluster labels                                                     |
 | --scale    | -       | Apply settings for large-scale data: approximate KNN with ScaNN or Faiss; simplified initialization ($T_i$=1) |
-| --gpu      | -       | Use gpu ANCKA implementation for clustering (ANCKA-gpu)                                                       |
-| --times    | 10      | Rerun ANCKA-gpu algorithm to obtain average time                                                              |
-| --caltime  | -       | Calculating the time taken by different parts of ANCKA / ANCKA-gpu                                            |
+| --gpu      | -       | Use ANCKA-GPU implementation for clustering                                                       |
+| --times    | 10      | Rerun ANCKA-GPU algorithm to obtain average metrics                                                              |
+| --caltime  | -       | Measure the time costs of different segments in ANCKA or ANCKA-GPU algorithm                                            |
 | --verbose  | -       | Produce verbose command-line output                                                                           |
 
-To **reproduce** the results in our paper, please use the [command](command.sh) for corresponding datasets.
+To **reproduce** the experiment results of ANCKA and ANCKA-GPU in our paper, please refer to [command.sh](command.sh) for corresponding datasets.
 
-Sample output of ANCKA and ANCKA-gpu on different types of attributed network:
+Sample output of running `bash command.sh`:
 
 ```text
 CPU based
