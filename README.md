@@ -64,7 +64,7 @@ To run ANCKA clustering algorithm please specify the name of dataset by command-
 | Attributed hypergraph stored in .npz file |     npz      |  query, 20news, amazon, magpm  |       HG       |
 | Attributed undirected graph               |      -       | cora,citeseer-UG,wiki,Amazon2M |       UG       |
 | Attributed directed graph                 |      -       |       citeseer-DG,Tweibo       |       DG       |
-| Attributed multiplex graph                |      -       |        ACM,IMBD,DBLP-MG        |       MG       |
+| Attributed multiplex graph                |      -       |        ACM,IMDB,DBLP-MG        |       MG       |
 
 
 Other parameters are optional:
