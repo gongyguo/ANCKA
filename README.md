@@ -1,53 +1,65 @@
 # ANCKA: A Versatile Framework for Attributed Network Clustering via K-Nearest Neighbor Augmentation
 
-This repository contains the ANCKA clustering framework for general attributed networks, extended from the previously published AHCKA algorithm for attributed hypergraph:
+This repository contains the **ANCKA** clustering framework for general attributed networks, extended from the previously published AHCKA algorithm for attributed hypergraph:
 
-    @article{LiYS23,
-      author       = {Yiran Li and
-                      Renchi Yang and
-                      Jieming Shi},
-      title        = {Efficient and Effective Attributed Hypergraph Clustering via K-Nearest
-                      Neighbor Augmentation},
-      journal      = {Proc. {ACM} Manag. Data},
-      volume       = {1},
-      number       = {2},
-      pages        = {116:1--116:23},
-      year         = {2023}
-    }
+```bibtex
+@article{LiYS23,
+  author       = {Yiran Li and Renchi Yang and Jieming Shi},
+  title        = {Efficient and Effective Attributed Hypergraph Clustering via K-Nearest Neighbor Augmentation},
+  journal      = {Proc. {ACM} Manag. Data},
+  volume       = {1},
+  number       = {2},
+  pages        = {116:1--116:23},
+  year         = {2023}
+}
+```
+
+The following attributed network datasets used in this work are also made available:
+
+- Attributed undirected/directed graphs: Cora, Undirected Citeseer, Wiki, Directed Citeseer, Tweibo*, Amazon2M*.
+
+- Attributed hypergraphs: Cora-CA, Cora-CC, Query, Citeseer, 20News, DBLP, Amazon*, MAG-PM*.
+
+- Attributed multiplex graphs: ACM, DBLP, IMDB.
+
+*\*Available at [Zenodo upload](https://zenodo.org/records/10426624) due to space limit of GitHub repository.*
 
 ## Pre-requisites
 
-1. Unzip all zip file in data/
+1. Prepare Python environment with pip or conda:
 
-2. Prepare Python environment with pip or conda:
+    - Python version 3.9
 
-- Python version 3.9
+    - Install required libraries: numpy, scipy, scikit-learn
 
-- numpy, scipy, scikit-learn
+1. (Optional) Extract attributed multiplex datasets:
 
-- Optional libraries for large-scale networks: faiss-cpu/scann
+    ```shell
+    unzip data/multi.zip -d data/
+    ```
 
-- Optional libraries for ANCKA-GPU: cupy-cuda116, faiss-gpu=1.7.3=py3.9
+1. (Optional) To run ANCKA-GPU, install cupy and faiss-gpu=1.7.3.
 
-## Dataset (Multipile types of attributed network)
+1. (Optional) For testing large-scale datasets:
 
-Available dataset in this repro:
+    - Install KNN search libraries: faiss-cpu and scann
 
-Hyper dataset: Cora-CA, Cora-CC, Query, Citeseer, 20News, DBLP 
+    - Download datasets and KNN index files from [Zenodo upload](https://zenodo.org/records/10426624)
 
-Undirected/Directed dataset: Cora, Undirected Citeseer, Wiki, Directed Citeseer.
+    - Extract files:
 
-Multiplex dataset: ACM, DBLP, IMDB
+        ```shell
+        cd ANCKA
+        unzip ~/Download_path/ANCKA_data.zip -d data/
+        ```
 
-Download [four large-scale datasets and used scann/faiss KNN index](https://github.com/CyanideCentral/AHCKA) and put them in data/ file.
+## Reproducing experiment results
 
-## Reproduce command and hyperparameter setting
+Run [command.sh](command.sh) to reproduce our experiment results of ANCKA and ANCKA-GPU.
 
-Refer to [command.sh](command.sh) for cpu and gpu based ANCKA's running command and hyperparameter setting 
+Sample output:
 
-## Sample output
-
-```
+```text
 CPU based
 dataset:cora data:none network_type:UG
 parameter setting: k=50 init_iter=25 beta=0.5
