@@ -53,14 +53,46 @@ The following attributed network datasets used in this work are also made availa
         unzip ~/Download_path/ANCKA_data.zip -d data/
         ```
 
-## Reproducing experiment results
+## Usage
 
-Run [command.sh](command.sh) to reproduce our experiment results of ANCKA and ANCKA-GPU.
+To run ANCKA clustering algorithm please specify the name of dataset by command-line parameter `--dataset`, and for hypergraph datasets also specify the type of dataset by `--data`. Besides, also provide the type of attributed network by `--network_type`. Datasets supported by our implementation include the following:
 
-Sample output:
+| Type of dataset                           |    --data    |           --dataset            | --network_type |
+| ----------------------------------------- | :----------: | :----------------------------: | :------------: |
+| Co-authorship hypergraph in .pickle files | coauthorship |           cora, dblp           |       HG       |
+| Co-citation hypergraph in .pickle files   |  cocitation  |         cora, citeseer         |       HG       |
+| Attributed hypergraph stored in .npz file |     npz      |  query, 20news, amazon, magpm  |       HG       |
+| Attributed undirected graph               |      -       | cora,citeseer-UG,wiki,Amazon2M |       UG       |
+| Attributed directed graph                 |      -       |       citeseer-DG,Tweibo       |       DG       |
+| Attributed multiplex graph                |      -       |        ACM,IMBD,DBLP-MG        |       MG       |
+
+
+Other parameters are optional:
+
+| Parameter  | Default | Description                                                                                                   |
+| ---------- | ------- | ------------------------------------------------------------------------------------------------------------- |
+| --knn_k    | 10      | $K$, the size of neighborhood in KNN graph                                                                    |
+| --alpha    | 0.2     | $\alpha$, restart probability in random walk with restart (RWR)                                               |
+| --beta     | 0.5     | $\beta$, the weight of KNN random walk                                                                        |
+| --tmax     | 200     | $T_{a}$, the maximum number of orthogonal iterations                                                          |
+| --interval | 5       | $\tau$, the interval of computing discrete cluster labels                                                     |
+| --scale    | -       | Apply settings for large-scale data: approximate KNN with ScaNN or Faiss; simplified initialization ($T_i$=1) |
+| --gpu      | -       | Use gpu ANCKA implementation for clustering (ANCKA-gpu)                                                       |
+| --times    | 10      | Rerun ANCKA-gpu algorithm to obtain average time                                                              |
+| --caltime  | -       | Calculating the time taken by different parts of ANCKA / ANCKA-gpu                                            |
+| --verbose  | -       | Produce verbose command-line output                                                                           |
+
+To **reproduce** the results in our paper, please use the [command](command.sh) for corresponding datasets.
+
+Sample output of ANCKA and ANCKA-gpu on different types of attributed network:
 
 ```text
 CPU based
+
+dataset:dblp data:coauthorship network_type:HG
+parameter setting: k=10 init_iter=25 beta=0.5
+ACC=0.797 F1=0.774 NMI=0.632 ARI=0.632 Time=30.899s
+
 dataset:cora data:none network_type:UG
 parameter setting: k=50 init_iter=25 beta=0.5
 ACC=0.723 F1=0.686 NMI=0.556 ARI=0.484 Time=1.110s
@@ -75,6 +107,11 @@ ACC=0.928 F1=0.928 NMI=0.739 ARI=0.796 Time=1.602s
 
 
 GPU based
+
+dataset:dblp data:coauthorship network_type:HG
+parameter setting: k=10 init_iter=25 beta=0.5
+ACC=0.808 F1=0.787 NMI=0.643 ARI=0.646 Time=0.663s
+
 dataset:cora data:none network_type:UG
 parameter setting: k=50 init_iter=25 beta=0.4
 ACC=0.683 F1=0.621 NMI=0.533 ARI=0.470 Time=0.377s

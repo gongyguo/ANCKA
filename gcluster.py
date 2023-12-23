@@ -250,7 +250,7 @@ def cluster(times, P, n, X, ftd, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t
                 stamp7 = time.time()
                 mhc_temp +=stamp7-stamp6
 
-                if config.verbose:
+                if config.verbose and test_time == times-1:
                     print(i, err, conductance_cur)
                 conductance_stats.append(conductance_cur)
                     
@@ -278,6 +278,10 @@ def cluster(times, P, n, X, ftd, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t
         predict_clusters_best=cp.asnumpy(predict_clusters_best)
         cm = clustering_metrics(config.labels, predict_clusters_best)
         acc, nmi, f1, pre, adj_s, rec = cm.evaluationClusterModelFromLabel()
+        if config.verbose and test_time == times-1:
+            print("%f seconds in clustering"%(end_time-start_time))
+            print(np.unique(predict_clusters_best))
+            print("best iter: %d, best mhc: %f, "%(iter_best, conductance_best))
 
         if config.caltime and test_time == times-1:
             print("knn time: " + f"{np.mean(knn_time[1:])}" )

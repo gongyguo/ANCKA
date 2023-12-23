@@ -251,7 +251,7 @@ def cluster(P, n, X, num_cluster, deg_dict, alpha=0.2, beta = 0.5, t=5, tmax=200
     if config.verbose:
         print("%f seconds in clustering"%(end_time-start_time))
         print(np.unique(predict_clusters_best))
-        print("best iter: %d, best mhc: %f, acc: %f, %f, %f"%(iter_best, conductance_best, conductance_best_acc[0], conductance_best_acc[1], conductance_best_acc[2]))
+        print("best iter: %d, best mhc: %f, "%(iter_best, conductance_best))
     cm = clustering_metrics(config.labels, predict_clusters_best)
     acc, nmi, f1, pre, adj_s, rec = cm.evaluationClusterModelFromLabel()
 
