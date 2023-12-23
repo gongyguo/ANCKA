@@ -163,7 +163,7 @@ def load_npz(dataset):
 #load MG
 def load_acm():
     feature = 'feature'
-    path = 'data/acm/'
+    path = 'data/multi/acm/'
     feature = sio.loadmat('{}{}.mat'.format(path, feature))
     adj1 = 'PAP'
     adj2 = 'PLP'
@@ -191,7 +191,7 @@ def load_acm():
     return data_dict
 
 def load_imdb():
-    path = 'data/imdb/'
+    path = 'data/multi/imdb/'
     dataset = 'imdb'
     ids = 'ids'
 
@@ -222,7 +222,7 @@ def load_imdb():
     return data_dict
 
 def load_dblp():
-    path = 'data/dblpAttributed/'
+    path = 'data/multi/dblpAttributed/'
     adj1 = 'apa'
     adj2 = 'apcpa'
     adj3 = 'aptpa'
