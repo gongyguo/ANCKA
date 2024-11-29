@@ -4,15 +4,8 @@ This repository contains the **ANCKA** clustering framework for general attribut
 
 ```bibtex
 @article{LiGSYSLL24,
-  author       = {Yiran Li and
-                  Gongyao Guo and
-                  Jieming Shi and
-                  Renchi Yang and
-                  Shiqi Shen and
-                  Qing Li and
-                  Jun Luo},
-  title        = {A versatile framework for attributed network clustering via K-nearest
-                  neighbor augmentation},
+  author       = {Yiran Li and Gongyao Guo and Jieming Shi and Renchi Yang and Shiqi Shen and Qing Li and Jun Luo},
+  title        = {A versatile framework for attributed network clustering via K-nearest neighbor augmentation},
   journal      = {{VLDB} J.},
   volume       = {33},
   number       = {6},
@@ -20,7 +13,6 @@ This repository contains the **ANCKA** clustering framework for general attribut
   year         = {2024}
 }
 ```
-
 ```bibtex
 @article{LiYS23,
   author       = {Yiran Li and Renchi Yang and Jieming Shi},
