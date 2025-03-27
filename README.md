@@ -1,6 +1,6 @@
 # ANCKA: A Versatile Framework for Attributed Network Clustering via K-Nearest Neighbor Augmentation
 
-This repository contains the **ANCKA** clustering framework for general attributed networks, extended from the previously published AHCKA algorithm for attributed hypergraph. If you find it helpful, please cite our work below:
+This repository contains the **ANCKA** clustering framework for general attributed networks, extended from the previously published [AHCKA](https://github.com/CyanideCentral/AHCKA) algorithm for attributed hypergraph. If you find it helpful, please cite our work below:
 
 ```bibtex
 @article{LiGSYSLL24,
